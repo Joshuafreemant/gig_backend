@@ -6,12 +6,17 @@ export const createMessage = async (req, res) => {
 
   try {
     const newMessage = new Message(req.body);
-    const savedMessage = await newMessage.save();
-    res.status(200).json(savedMessage);
+    await newMessage.save();
+    const chats = await Message.find({
+      conversationId: req.body.conversationId,
+    }); //return all GROUP CHATS to the frontend
+    res.status(201).json({ chats });
+    
   } catch (err) {
     res.status(500).json(err);
   }
 };
+
 
 
 export const getConversationMessages = async (req, res) => {

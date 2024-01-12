@@ -26,10 +26,7 @@ const UserSchema = new Schema({
         required: true,
 
     },
-    phone_number: {
-        type: String,
-        default: "", 
-    },
+    
     state: {
         type: String,
         default: "", 
