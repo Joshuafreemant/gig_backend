@@ -15,7 +15,7 @@ const sendResetEmail = (email, resetToken) => {
     from: "tolexjoshua@gmail.com",
     to: email,
     subject: "Password Reset",
-    text: `Click the following link to reset your password: http://your-app/reset-password/${resetToken}`,
+    text: `Click the following link to reset your password: https://acoalumni.com/reset-password/${resetToken}`,
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
