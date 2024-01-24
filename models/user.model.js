@@ -63,7 +63,12 @@ const UserSchema = new Schema({
     resetPasswordExpires: { type: Date }, 
     status: {
         type: String,
-        default: "", 
+        default: "inactive",
+
+    },
+    role: {
+        type: String,
+        default: "member", 
 
     },
     // subjects: [{

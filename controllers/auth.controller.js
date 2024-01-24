@@ -2,7 +2,7 @@ import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { sendResetEmail, sendWelcomeEmail } from "./emailController.js";
+import { sendNotificationEmail, sendResetEmail, sendWelcomeEmail } from "./emailController.js";
 
 export const register = async (req, res) => {
   const existingUserWithEmail = await User.findOne({ email: req.body.email });
@@ -22,12 +22,62 @@ export const register = async (req, res) => {
   try {
     const hash = bcrypt.hashSync(req.body.password, 5);
     const newUser = new User({
-      ...req.body,
+      firstname: req.body.firstname,
+      lastname: req.body.lastname,
+      email: req.body.email,
       password: hash,
+      set: req.body.set,
+      house: req.body.house,
+      role: "member",
+      status: "inactive",
     });
+
+    await newUser.save();
+
+    const allUsers = await User.find();
+    const adminUsers = allUsers.filter(user => user.role === "admin");
+    const adminEmails = adminUsers.map(adminUser => adminUser.email);
+
+    sendWelcomeEmail(req.body.email, req.body.firstname);
+    sendNotificationEmail(adminEmails, req.body.firstname, req.body.set);
+    res.status(201).json({ message: "User created Successfully" });
+  } catch (error) {
+    res.status(500).json(error);
+    console.log(error);
+  }
+};
+export const registerAdmin = async (req, res) => {
+  const existingUserWithEmail = await User.findOne({ email: req.body.email });
+  if (existingUserWithEmail) {
+    return res.status(400).json({ error: "Email is already taken" });
+  }
+  if (!req.body.firstname.length) {
+    return res.status(400).json({ error: "Provide a valid Firstname" });
+  }
+  if (!req.body.lastname.length) {
+    return res.status(400).json({ error: "Provide a valid Lastname" });
+  }
+  if (!req.body.email.length) {
+    return res.status(400).json({ error: "Provide a valid Email Address" });
+  }
+
+  try {
+    const hash = bcrypt.hashSync(req.body.password, 5);
+
+    const newUser = new User({
+      firstname: req.body.firstname,
+      lastname: req.body.lastname,
+      email: req.body.email,
+      password: hash,
+      set: req.body.set,
+      house: req.body.house,
+      role: "admin",
+      status: "active",
+    });
+
     await newUser.save();
     sendWelcomeEmail(req.body.email, req.body.firstname);
-    res.status(201).json({ message: "User created Successfully" });
+    res.status(201).json({ message: "Admin account created Successfully" });
   } catch (error) {
     res.status(500).json(error);
     console.log(error);
@@ -37,10 +87,11 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const user = await User.findOne({ email: req.body.email });
-    if (!user) return res.status(404).json({message:"User Not Found"});
+    if (!user) return res.status(404).json({ message: "User Not Found" });
 
     const isCorrect = bcrypt.compareSync(req.body.password, user.password);
-    if (!isCorrect) return res.status(400).json({message:"Wrong Password or Username"});
+    if (!isCorrect)
+      return res.status(400).json({ message: "Wrong Password or Username" });
 
     const token = jwt.sign(
       {
@@ -104,8 +155,8 @@ const resetPassword = async (req, res) => {
         .status(400)
         .json({ message: "Invalid or expired reset token" });
     }
-
-    user.password = newPassword;
+    const hash = bcrypt.hashSync(newPassword, 5);
+    user.password = hash;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
 

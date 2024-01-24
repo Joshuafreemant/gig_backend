@@ -5,6 +5,7 @@ import userRoute from "./routes/user.route.js";
 import authRoute from "./routes/auth.route.js";
 import conversationRoute from "./routes/conversation.route.js";
 import messageRoute from "./routes/message.route.js";
+import setRoute from "./routes/set.route.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 // import { Server } from "socket.io";
@@ -78,9 +79,10 @@ app.use("/api/user", userRoute);
 app.use("/api/auth", authRoute);
 app.use("/api/conversations", conversationRoute);
 app.use("/api/messages", messageRoute);
+app.use("/api/set", setRoute);
 
 
 // io.listen(8900);
-app.listen(8000, () => {
+app.listen(5000, () => {
   console.log("Backend is Running");
 });
